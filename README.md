@@ -1,3 +1,7 @@
+# Some Thoughts before the Official Readme
+
+* Need some way to sample the action space without doing it randomly --> maybe think of setting some hyperparameters like "unit composition" or "wall lines" that we can tune
+
 # C1GamesStarterKit
 
 Welcome to the C1 Terminal Starter Kit! The repository contains a collection of scripts and 
