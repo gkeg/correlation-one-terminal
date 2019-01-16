@@ -13,24 +13,27 @@ empty
 conf
 empty
 turn0
-rmpty
 turn1
 ...
 """
 
 replay = 'p1-13-01-2019-12-04-37-1547399077700--1034977755.replay'
+replay = 'p1-16-01-2019-10-17-45-1547651865424--2108863707.replay'
 
 with open('replays/{}'.format(replay), 'r') as f:
     _ = f.readline()
     conf = f.readline()
     _ = f.readline()
-    s = f.readline()
+    rest = f.readlines()
 
-print(s)
+rest = [x.strip() for x in rest] 
 
-game_state = gamelib.GameState(json.loads(conf) , s)
+memory = list(map(lambda x: gamelib.GameState(json.loads(conf) , x), rest))
 
-print(game_state.turn_number)
-print(game_state.my_health)
+
+# Testing to make sure it's right
+print(memory)
+print(memory[0].turn_number)
+print(memory[0].my_health)
 
 	
