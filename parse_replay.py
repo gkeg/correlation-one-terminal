@@ -14,7 +14,6 @@ empty
 conf
 empty
 turn0
-rmpty
 turn1
 ...
 """
