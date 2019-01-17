@@ -1,3 +1,17 @@
+# Single Heuristic attack or defence module definition:
+```python
+def build_a_wall(current_state, current_coins):
+    """
+    Applies blah blah strategy to the game board. If there are already units in 
+    place, then strategy simply builds around them. (describe it here in details)
+    
+    :param current_state: current game state object
+    :param current_coins: current coins tuple (shield_money, attack_money)
+    :return: tuple of (updated current_state object, updated current_coins object)
+    """
+
+```
+
 # Some Thoughts before the Official Readme
 
 * Need some way to sample the action space without doing it randomly --> maybe think of setting some hyperparameters like "unit composition" or "wall lines" that we can tune
