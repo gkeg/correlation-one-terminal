@@ -7,7 +7,7 @@ from sys import maxsize
 
 # Import our strategies
 # offense
-from strategies import emp_cheese
+from strategies import emp_cheese, sell_vulnerable_line
 
 class AlgoStrategy(gamelib.AlgoCore):
     def __init__(self):
@@ -42,9 +42,9 @@ class AlgoStrategy(gamelib.AlgoCore):
         # game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
 
         self.build_bad_wall(game_state)
+        sell_vulnerable_line(game_state)
 
         best, num = emp_cheese(game_state)
-
         if best and game_state.can_spawn(EMP, best[1]):
             game_state.attempt_spawn(EMP, best[1], num)
 
@@ -53,7 +53,7 @@ class AlgoStrategy(gamelib.AlgoCore):
 
     def build_bad_wall(self, game_state):
         line = 12
-        for i in range(20):
+        for i in range(1,20):
             if game_state.CORES < 1:
                 return
             unit = FILTER if i % 2 else DESTRUCTOR
