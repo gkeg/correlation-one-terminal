@@ -43,22 +43,92 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
 
+        # Perform setup if the turn number is zero
+        # Check if we should move up our setup, or not.
         if game_state.turn_number == 0:
             self.initial_setup(game_state)
+            return
 
-        self.boring(game_state)
+        '''
+        OVERARCHING STRATEGY LOGIC
+            If getting rushed --> Defend and rush other side
+            If they have a solid defence --> Build escort strategy
+            If they have a dumb opening --> Rush them
+            If the game is super passive --> Build encryptors and defend
+        '''
+
+        # Patch up any holes in our defences
+        self.reactive_defence()
+
+        # Check if we want to rush them, if so, then do it!
+        rush_loc, rush_unit = self.find_rush_spot(game_state)
+        if rush_loc is not None:
+            self.attack_hole(game_state, rush_loc, rush_unit)
+            game_state.submit_turn()
+            return
+
+        # The idea is that they will constantly update defences. Find out what their heavy side
+        # is, and determine if we should go escort or not
+        heavy_side = self.scan_opponent_defences(game_state)
+        self.escort_strategy(game_state, heavy_side)
 
         game_state.submit_turn()
 
-    def initial_setup(self, state: gamelib.AdvancedGameState):
+    # Spawns as many pings/scramblers at the given location
+    def perform_rush(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
+        if state.can_spawn(rush_unit, rush_loc):
+            # Find out the proper amount for the amount of bits to spend
+            state.attempt_spawn(rush_unit, rush_loc, state.my_bits())
+
+    def find_rush_spot(self, state: gamelib.AdvancedGameState):
+        return ([24, 10], PING)
+
+    # Finds the side where they have the most defences. Checks the first 5 rows and determines
+    # if it's left-heavy or right-heavy. Returns left-heavy by default
+    def scan_opponent_defences(self, state: gamelib.AdvancedGameState):
         return True
 
-    def boring(self, state: gamelib.AdvancedGameState, left=False):
+    # The plan is we're going to gear up to do an escort from the LHS
+    def initial_setup(self, state: gamelib.AdvancedGameState):
+        # Almost symmetrical setup, just need filter on <14, 10>
+        filter_locs = [[0, 13], [1, 12], [2, 11], [3, 11], [4, 11], [6, 10],
+                       [8, 11], [21, 10], [23, 11], [24, 11], [25, 11], [26, 12], [27, 13]]
+        destr_locs = [[5, 10], [10, 9], [17, 9], [22, 10]]
+
+        for dest in destr_locs:
+            if state.can_spawn(DESTRUCTOR, dest):
+                state.attempt_spawn(DESTRUCTOR, dest)
+
+        for f in filter_locs:
+            if state.can_spawn(FILTER, f):
+                state.attempt_spawn(FILTER, f)
+
+    # Idea behind escort strategy --> 2 EMPs + 2 Scramblers + Rerouting with filters
+    # Finds out the optimal side to attack from as well
+    # For now, hardcode it to be the LHS
+    def escort_strategy(self, state: gamelib.AdvancedGameState, defensive_side='left'):
+        # See if we need to use more filters here
+        # This should be dynamic, depending on the board state, kind of like
+        # What stage of the game are we in
+        filter_locs = [[6, 10], [11, 10], [16, 10], [22, 10]]
+
+        # Spawn 2 EMPs and 2 Scramblers. Again, this should be dynamic
+        emp_locs = [[3, 10], [3, 10]]
+        scrambler_locs = [[4, 9], [4, 9]]
+
+        for e in emp_locs:
+            if state.can_spawn(EMP, e):
+                state.attempt_spawn(EMP, e)
+
+        for s in scrambler_locs:
+            if state.can_spawn(SCRAMBLER, s):
+                state.attempt_spawn(SCRAMBLER, s)
+
+
+    def blackbeard(self, state: gamelib.AdvancedGameState, left=False):
         # Do initial first turn setup
-        destr_locs = [[]]
-        wall_locs = [[]]
         # Spawn front destructors and encryptors
-        destr = [[23,13], [24,13]]
+        destr = [[23,13], [24, 13]]
         encr = [[23,12], [24,12], [25,13], [23,11]]
         for i in destr:
             if state.can_spawn(DESTRUCTOR, i):
