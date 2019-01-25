@@ -9,9 +9,7 @@ from . import gamelib
 # Import our strategies
 # offense
 from strategies import emp_cheese, sell_vulnerable_line
-
-# Defences class
-class
+from defences import Defences
 
 class AlgoStrategy(gamelib.AlgoCore):
     def __init__(self):
@@ -33,6 +31,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         EMP = config["unitInformation"][4]["shorthand"]
         SCRAMBLER = config["unitInformation"][5]["shorthand"]
 
+        self.defences = Defences(config)
+
     def on_turn(self, turn_state):
         """
         This function is called every turn with the game state wrapper as
@@ -46,24 +46,14 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
 
+        '''
         # Perform setup if the turn number is zero
         # Check if we should move up our setup, or not.
         if game_state.turn_number == 0:
             self.sawtooth_setup(game_state)
             return
 
-        if game_state.turn_number == 1:
-            self.sawtooth_turn_1(game_state)
-
-        '''
-        OVERARCHING STRATEGY LOGIC
-            If getting rushed --> Defend and rush other side
-            If they have a solid defence --> Build escort strategy
-            If they have a dumb opening --> Rush them
-            If the game is super passive --> Build encryptors and defend
-        '''
-
-        # Patch up any holes in our defences
+        # Push anything important to the front of the priority queue
         self.reactive_defence()
 
         # Check if we want to rush them, if so, then do it!
@@ -73,30 +63,53 @@ class AlgoStrategy(gamelib.AlgoCore):
             game_state.submit_turn()
             return
 
-        # The idea is that they will constantly update defences. Find out what their heavy side
-        # is, and determine if we should go escort or not
-        heavy_side = self.scan_opponent_defences(game_state)
-        self.escort_strategy(game_state, heavy_side)
+        # Sawtooth defence otherwise
+        self.sawtooth(game_state)
+        '''
+
+        self.build_defences(game_state)
+        self.attack(game_state)
 
         game_state.submit_turn()
 
+
+    def attack(self, state: gamelib.AdvancedGameState):
+        dest_loc = [24, 10]
+        while state.get_resource(state.BITS) > 0:
+            if state.can_spawn(DESTRUCTOR, dest_loc):
+                state.attempt_spawn(DESTRUCTOR, dest_loc)
+
+    def build_defences(self, state: gamelib.AdvancedGameState):
+        # When we're at full build, do nothing!
+        while state.get_resource(state.CORES) > 0 and not self.defences.build_done():
+            loc, defence_type = self.defences.get_next_defence()
+            if state.can_spawn(defence_type, loc):
+                state.attempt_spawn(defence_type, loc)
+
     # Spawns as many pings/scramblers at the given location
-    def perform_rush(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
+    def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
         if state.can_spawn(rush_unit, rush_loc):
             # Find out the proper amount for the amount of bits to spend
             state.attempt_spawn(rush_unit, rush_loc, state.my_bits())
 
     def find_rush_spot(self, state: gamelib.AdvancedGameState):
-        return ([24, 10], PING)
+        return (None, PING)
 
     # Finds the side where they have the most defences. Checks the first 5 rows and determines
     # if it's left-heavy or right-heavy. Returns left-heavy by default
     def scan_opponent_defences(self, state: gamelib.AdvancedGameState):
         return True
 
-    # Check which side to attack from, left or right
-    def sawtooth_turn_1(self, state: gamelib.AdvancedGameState):
+    # Sawtooth defence
+    def sawtooth(self, state: gamelib.AdvancedGameState):
+        # Find the defences that were destroyed
+        destroyed = self.find_destroyed_defences(state)
 
+
+
+    # Find the defences that were destroyed last term
+    def find_destroyed_defences(self, state: gamelib.AdvancedGameState):
+        return []
 
     # Set up the classic sawtooth defence
     def sawtooth_setup(self, state: gamelib.AdvancedGameState):
