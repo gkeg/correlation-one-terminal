@@ -5,11 +5,14 @@ import math
 import warnings
 from sys import maxsize
 
+
 from . import gamelib
+
 # Import our strategies
 # offense
 from strategies import emp_cheese, sell_vulnerable_line
 from defences import Defences
+
 
 class AlgoStrategy(gamelib.AlgoCore):
     def __init__(self):
@@ -67,17 +70,19 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.sawtooth(game_state)
         '''
 
+        self.defences.refresh_state(game_state)
         self.build_defences(game_state)
-        self.attack(game_state)
+
+        if game_state.turn_number != 0:
+            self.attack(game_state)
 
         game_state.submit_turn()
 
 
     def attack(self, state: gamelib.AdvancedGameState):
-        dest_loc = [24, 10]
-        while state.get_resource(state.BITS) > 0:
-            if state.can_spawn(DESTRUCTOR, dest_loc):
-                state.attempt_spawn(DESTRUCTOR, dest_loc)
+        emp_loc = [3, 10]
+        while state.can_spawn(EMP, emp_loc, 1):
+            state.attempt_spawn(EMP, emp_loc, 1)
 
     def build_defences(self, state: gamelib.AdvancedGameState):
         # When we're at full build, do nothing!
@@ -91,9 +96,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         if state.can_spawn(rush_unit, rush_loc):
             # Find out the proper amount for the amount of bits to spend
             state.attempt_spawn(rush_unit, rush_loc, state.my_bits())
-
-    def find_rush_spot(self, state: gamelib.AdvancedGameState):
-        return (None, PING)
 
     # Finds the side where they have the most defences. Checks the first 5 rows and determines
     # if it's left-heavy or right-heavy. Returns left-heavy by default
@@ -116,7 +118,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         # Almost symmetrical setup, just need filter on <14, 10>
         dest_locs = [[2, 11], [6, 11], [11, 11], [16, 11], [21, 11], [25, 11]]
         filter_locs = [[0, 13], [1, 12], [26, 12], [27, 13]]
-
 
         for dest in destr_locs:
             if state.can_spawn(DESTRUCTOR, dest):
