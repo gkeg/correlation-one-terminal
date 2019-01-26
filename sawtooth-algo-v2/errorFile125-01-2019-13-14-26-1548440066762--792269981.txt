@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo/algo_strategy.py", line 11, in <module>
+    from strategies import emp_cheese, sell_vulnerable_line
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo/strategies/__init__.py", line 1, in <module>
+    from .offense import emp_cheese
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo/strategies/offense.py", line 1, in <module>
+    import pdb
+  File "/Users/griffinkeglevich/miniconda3/lib/python3.6/pdb.py", line 74, in <module>
+    import bdb
+  File "/Users/griffinkeglevich/miniconda3/lib/python3.6/bdb.py", line 6, in <module>
+    from inspect import CO_GENERATOR, CO_COROUTINE, CO_ASYNC_GENERATOR
+  File "/Users/griffinkeglevich/miniconda3/lib/python3.6/inspect.py", line 361, in <module>
+    Attribute = namedtuple('Attribute', 'name kind defining_class object')
+  File "/Users/griffinkeglevich/miniconda3/lib/python3.6/collections/__init__.py", line 429, in namedtuple
+    exec(class_definition, namespace)
+  File "<string>", line 5, in <module>
+KeyboardInterrupt

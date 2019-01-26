@@ -41,8 +41,6 @@ class Defences:
             ([1, 12],  FILTER),
             ([26, 12], FILTER),
             ([27, 13], FILTER),
-
-            # Chunk 2 --> Building out the first wall
             ([3, 11],  FILTER),
             ([4, 11],  FILTER),
             ([5, 11],  FILTER),
@@ -150,3 +148,4 @@ class Defences:
     #                 prev_locs.append(loc)
     #
     #     return zip(prev_locs, prev_units)
+
