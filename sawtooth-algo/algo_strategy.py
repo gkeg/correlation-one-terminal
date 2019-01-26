@@ -46,7 +46,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.build_defences(game_state)
 
         if game_state.turn_number != 0:
-            self.attack(game_state)
+            self.best_spawn(game_state)
 
         game_state.submit_turn()
 
@@ -58,111 +58,25 @@ class AlgoStrategy(gamelib.AlgoCore):
     def build_defences(self, state: gamelib.AdvancedGameState):
         self.defences.build_template(state)
 
-    @staticmethod
-    def attack_hole(state: gamelib.AdvancedGameState, rush_loc, rush_unit):
-        """ Spawns as many pings/scramblers at the given location
-
-        :param state:
-        :param rush_loc:
-        :param rush_unit:
-        :return:
-        """
+    # Spawns as many pings/scramblers at the given location
+    def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
         if state.can_spawn(rush_unit, rush_loc):
             # Find out the proper amount for the amount of bits to spend
             state.attempt_spawn(rush_unit, rush_loc, state.my_bits())
 
-    @staticmethod
-    def scan_opponent_defences(state: gamelib.AdvancedGameState):
-        """ Finds the side where they have the most defences. Checks the first 5 rows and
-        determines if it's left-heavy or right-heavy. Returns left-heavy by default.
-
-        :param state:
-        :return:
-        """
+    # Finds the side where they have the most defences. Checks the first 5 rows and determines
+    # if it's left-heavy or right-heavy. Returns left-heavy by default
+    def scan_opponent_defences(self, state: gamelib.AdvancedGameState):
         return True
 
+    # Sawtooth defence
     def sawtooth(self, state: gamelib.AdvancedGameState):
-        """ Sawtooth defence.
-
-        :param state:
-        :return:
-        """
         # Find the defences that were destroyed
-        damaged_locations = self._find_damaged_def_units(state)
+        destroyed = self.find_destroyed_defences(state)
 
-    @staticmethod
-    def _has_loc_been_attacked(curr_unit_obj, prev_unit_obj):
-        """ Helper to check if location has been attacked based on changes in
-        current and previous unit state.
-
-        :param curr_unit_obj: current round unit object.
-        :param prev_unit_obj: previous round unit object.
-        :return: (boolean) if the unit has been attacked.
-        """
-        if not curr_unit_obj:
-            return False
-        else:
-            return curr_unit_obj.stability < prev_unit_obj.stability
-
-    @staticmethod
-    def _find_locs_w_def_units(state):
-        """ Finds all locations of the defensive units on our side of the map.
-
-        :param state: game state object.
-        :return: (list) tuples of location and defensive units at that location.
-        """
-        locations = []
-        def_units = []
-
-        for x in range(state.ARENA_SIZE):
-            for y in range(state.HALF_ARENA):
-                units = state.game_map[[x, y]]
-                if units is None or units == []:
-                    continue
-                else:
-                    for unit in units:
-                        if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]:
-                            locations.append([x, y])
-                            def_units.append(unit)
-                            # gamelib.debug_write("Unit --> ", unit)
-
-        return zip(locations, def_units)
-
-    def _find_damaged_def_units(self, state: gamelib.AdvancedGameState, apply_barrel_mask=True):
-        """ Find all static units that lost some health during last round.
-
-        :param state: current game state.
-        :param apply_barrel_mask: flag to ignore units that are part of the barrel.
-        :return: (list) locations of damaged units.
-        """
-        damaged_locs = []
-
-        # If previous state of the game does not exist, then return empty array.
-        if self.prev_state is None:
-            return []
-
-        # Get locations of all defensive units in previous round.
-        prev_locs_and_units = self._find_locs_w_def_units(self.prev_state)
-
-        for prev_loc, prev_unit in prev_locs_and_units:
-            # Find defensive unit at current location.
-            curr_unit = [
-                unit for unit in state.game_map[prev_loc]
-                if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]
-            ]
-            curr_unit = None if len(curr_unit) == 0 else curr_unit[0]
-
-            # Check if unit has been attacked over the last round.
-            if self._has_loc_been_attacked(curr_unit, prev_unit):
-
-                # Apply barrel mask - do not count damaged units that are part of the barrel.
-                if apply_barrel_mask:
-                    if prev_loc not in BARREL_MASK:
-                        damaged_locs.append(prev_loc)
-                else:
-                    damaged_locs.append(prev_loc)
-
-        return damaged_locs
+    # Find the defences that were destroyed last term
+    def find_destroyed_defences(self, state: gamelib.AdvancedGameState):
+        return []
 
     # Set up the classic sawtooth defence
     def sawtooth_setup(self, state: gamelib.AdvancedGameState):
@@ -199,12 +113,11 @@ class AlgoStrategy(gamelib.AlgoCore):
             if state.can_spawn(SCRAMBLER, s):
                 state.attempt_spawn(SCRAMBLER, s)
 
-
     def blackbeard(self, state: gamelib.AdvancedGameState, left=False):
         # Do initial first turn setup
         # Spawn front destructors and encryptors
-        destr = [[23,13], [24, 13]]
-        encr = [[23,12], [24,12], [25,13], [23,11]]
+        destr = [[23, 13], [24, 13]]
+        encr = [[23, 12], [24, 12], [25, 13], [23, 11]]
         for i in destr:
             if state.can_spawn(DESTRUCTOR, i):
                 state.attempt_spawn(DESTRUCTOR, i)
@@ -216,15 +129,15 @@ class AlgoStrategy(gamelib.AlgoCore):
         end = 12 if state.turn_number > 0 else 19
 
         # open = False
-        #spawn remaining filters
-        for i in range(22,end,-1):
+        # spawn remaining filters
+        for i in range(22, end, -1):
             # if not state.contains_stationary_unit([i,i-12]) and state.get_resource(state.CORES) < 1:
             #     open = True
-            if state.can_spawn(FILTER, [i,i-12]):
-                state.attempt_spawn(FILTER, [i,i-12])
+            if state.can_spawn(FILTER, [i, i - 12]):
+                state.attempt_spawn(FILTER, [i, i - 12])
 
         # if we have extra cores use some of them18,13,9,5 then filters between
-        prio = [[1,13], [1,12], [0,13],[18,10], [18,11], [13,11], [9,10], [9,11],[5,11]]
+        prio = [[1, 13], [1, 12], [0, 13], [18, 10], [18, 11], [13, 11], [9, 10], [9, 11], [5, 11]]
         which = [DESTRUCTOR, DESTRUCTOR, FILTER, DESTRUCTOR, FILTER, DESTRUCTOR, DESTRUCTOR, FILTER, DESTRUCTOR]
 
         for i in range(len(prio)):
@@ -235,23 +148,22 @@ class AlgoStrategy(gamelib.AlgoCore):
         i = 0
         # Try to spawn some random stuff
         while i < 10 and state.get_resource(state.CORES) > 6:
-            row = random.randint(10,11)
-            col = random.randint(13-row, 19)
-            type = DESTRUCTOR if random.randint(0,1) else FILTER
-            if state.can_spawn(type, [row,col] ):
-                state.attempt_spawn(type, [row,col])
+            row = random.randint(10, 11)
+            col = random.randint(13 - row, 19)
+            type = DESTRUCTOR if random.randint(0, 1) else FILTER
+            if state.can_spawn(type, [row, col]):
+                state.attempt_spawn(type, [row, col])
 
         if state.turn_number == 0:
-            state.attempt_spawn(PING, [13,0],2)
-            state.attempt_spawn(PING, [14,0],2)
+            state.attempt_spawn(PING, [13, 0], 2)
+            state.attempt_spawn(PING, [14, 0], 2)
         # elif open:
         #     state.attempt_spawn(EMP, [17, 3])
         elif state.turn_number % 2:
             bits = state.get_resource(state.BITS)
             if bits > 4:
-                state.attempt_spawn(PING, [14,0], 4)
-            state.attempt_spawn(PING, [13,0], int(state.get_resource(state.BITS)))
-
+                state.attempt_spawn(PING, [14, 0], 4)
+            state.attempt_spawn(PING, [13, 0], int(state.get_resource(state.BITS)))
 
     def filter_blocked_locations(self, locations, game_state):
         filtered = []
@@ -259,6 +171,114 @@ class AlgoStrategy(gamelib.AlgoCore):
             if not game_state.contains_stationary_unit(location):
                 filtered.append(location)
         return filtered
+
+    def best_spawn(self, state):
+        locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
+        units = [PING, EMP, SCRAMBLER]
+        bits = state.get_resource(state.BITS)
+
+        best = (0, None)
+        for loc in locs:
+            for unit in units:
+                cost = 3 if unit == EMP else 1
+
+                val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
+                if val > best[0]:
+                    best = (val, (loc, unit, int(bits / cost)))
+
+        loc, unit, num = best[1]
+        state.attempt_spawn(unit, loc, num)
+
+    def simulate(state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
+        map = state.game_map
+
+        """
+        TODO: ENCRYPTORS
+        """
+        target_edge = map.TOP_RIGHT if spawn_loc[0] < 14 else map.TOP_LEFT
+
+        path = state.find_path_to_edge(spawn_loc, target_edge)
+
+        # map.add_unit(PING, [14,0], player_index=0)
+        # print(state.get_attackers([13,14], 0))
+
+        total_dmg = 0
+        total_cores = 0
+
+        frames = 2 if unit_type == PING else 4
+        dmg = 0 if unit_type == SCRAMBLER else (1 if unit_type == PING else 3)
+
+        for i in range(num_units):
+            map.add_unit(unit_type, spawn_loc)
+        idx = 0
+
+        remaining = map[spawn_loc]
+
+        map.remove_unit(spawn_loc)
+        pings = 0
+        while idx < len(path):
+
+            loc = path[idx]
+
+            for i in remaining:
+                i.x = loc[0]
+                i.y = loc[1]
+                map[loc].append(i)
+
+            for i in range(frames):
+                defense_dmg = 4 * len(state.get_attackers(loc, 0))
+                our_dmg = len(map[loc]) * dmg
+
+                initial = len(map[loc])
+
+                if map[loc]:
+                    target = state.get_target(map[loc][0])
+                else:
+                    break
+
+                if target:
+                    target.stability -= our_dmg
+                    total_dmg += our_dmg
+                    total_cores += (our_dmg / target.stability) * target.cost
+                    if target.stability < 0:
+                        map.remove_unit([target.x, target.y])
+
+                dead = 0
+                for i in range(initial):
+
+                    if defense_dmg <= 0 or dead == len(map[loc]):
+                        break
+
+                    # Killed one, did they kill more
+                    if defense_dmg >= map[loc][dead].stability:
+                        defense_dmg -= map[loc][dead].stability
+                        dead += 1
+
+                    # They didn't kill this one
+                    else:
+                        map[loc][dead].stability -= defense_dmg
+                        break
+
+                # kill the dead ones
+                for i in range(dead):
+                    map[loc].pop(0)
+
+            remaining = map[loc]
+            pings = remaining
+
+            if len(remaining) == 0:
+                break
+
+            map.remove_unit(loc)
+
+            idx += 1
+
+            mod_path = state.find_path_to_edge(spawn_loc, target_edge)
+            if path != mod_path and loc in mod_path:
+                idx = mod_path.index(loc) + 1
+                path = mod_path
+
+        return 5 * len(pings) + total_cores
 
 
 if __name__ == "__main__":
