@@ -1,6 +1,7 @@
 import gamelib
 import random
 import copy
+import time
 
 from defences import Defences
 
@@ -26,6 +27,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         SCRAMBLER = config["unitInformation"][5]["shorthand"]
 
         self.defences = Defences(config)
+        self.time_start = 0
 
     def on_turn(self, turn_state):
         """
@@ -170,24 +172,38 @@ class AlgoStrategy(gamelib.AlgoCore):
         return filtered
 
     def best_spawn(self, state):
+        self.time_start = time.time()
         locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
         units = [PING, EMP, SCRAMBLER]
         bits = state.get_resource(state.BITS)
+
+        og_map = copy.deepcopy(state.game_map)
 
         best = (0, None)
         for loc in locs:
             for unit in units:
                 cost = 3 if unit == EMP else 1
+                if not state.can_spawn(unit, loc):
+                    continue
 
-                val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
-                if val > best[0]:
-                    best = (val, (loc, unit, int(bits / cost)))
+                if time.time() - self.time_start < 2:
+                    state.game_map = copy.deepcopy(og_map)
+                    val = self.simulate(state, unit, loc, int(bits / cost))
+                    if val > best[0]:
+                        best = (val, (loc, unit, int(bits / cost)))
+                    else:
+                        break
 
-        loc, unit, num = best[1]
-        state.attempt_spawn(unit, loc, num)
+        state.game_map = og_map
 
-    @staticmethod
-    def simulate(state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
+        if best[0] > 0:
+            loc, unit, num = best[1]
+            if best[0] > num * 2:
+                state.attempt_spawn(unit, loc, num)
+        else:
+            self.attack(state)
+
+    def simulate(self, state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
         map = state.game_map
 
         """
@@ -196,9 +212,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         target_edge = map.TOP_RIGHT if spawn_loc[0] < 14 else map.TOP_LEFT
 
         path = state.find_path_to_edge(spawn_loc, target_edge)
-
-        # map.add_unit(PING, [14,0], player_index=0)
-        # print(state.get_attackers([13,14], 0))
 
         total_dmg = 0
         total_cores = 0
@@ -237,7 +250,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 if target:
                     target.stability -= our_dmg
                     total_dmg += our_dmg
-                    total_cores += (our_dmg / target.stability) * target.cost
+                    total_cores += (our_dmg / target.max_stability) * target.cost
                     if target.stability < 0:
                         map.remove_unit([target.x, target.y])
 
@@ -271,12 +284,13 @@ class AlgoStrategy(gamelib.AlgoCore):
 
             idx += 1
 
-            mod_path = state.find_path_to_edge(spawn_loc, target_edge)
-            if path != mod_path and loc in mod_path:
-                idx = mod_path.index(loc) + 1
-                path = mod_path
+            if loc[1] > 14:
+                mod_path = state.find_path_to_edge(spawn_loc, target_edge)
+                if path != mod_path and loc in mod_path:
+                    idx = mod_path.index(loc) + 1
+                    path = mod_path
 
-        return 5 * len(pings) + total_cores
+        return 3.5 * len(pings) + total_cores
 
 
 if __name__ == "__main__":
