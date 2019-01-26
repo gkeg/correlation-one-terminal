@@ -10,6 +10,7 @@ class AlgoStrategy(gamelib.AlgoCore):
     def __init__(self):
         super().__init__()
         random.seed()
+        self.prev_state = None
 
     def on_game_start(self, config):
         """
@@ -42,10 +43,11 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  # Uncomment this line to suppress warnings.
 
-        self.build_defences(game_state)
+        self.build_defences(game_state, self.prev_state)
 
         if game_state.turn_number != 0:
-            self.best_spawn(game_state)
+            self.prev_state = copy.deepcopy(game_state)
+            self.best_spawn(game_state, self.prev_state)
 
         game_state.submit_turn()
 
@@ -54,8 +56,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         while state.can_spawn(EMP, emp_loc, 1):
             state.attempt_spawn(EMP, emp_loc, 1)
 
-    def build_defences(self, state: gamelib.AdvancedGameState):
-        self.defences.build_template(state)
+    def build_defences(self, state: gamelib.AdvancedGameState, prev_state):
+        self.defences.build_template(state, prev_state)
 
     # Spawns as many pings/scramblers at the given location
     def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
@@ -171,13 +173,11 @@ class AlgoStrategy(gamelib.AlgoCore):
                 filtered.append(location)
         return filtered
 
-    def best_spawn(self, state):
+    def best_spawn(self, state, og_map):
         self.time_start = time.time()
         locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
         units = [PING, EMP, SCRAMBLER]
         bits = state.get_resource(state.BITS)
-
-        og_map = copy.deepcopy(state.game_map)
 
         best = (0, None)
         for loc in locs:
