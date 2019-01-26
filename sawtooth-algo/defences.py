@@ -23,6 +23,7 @@ class Defences:
         self.UNIT_COSTS = self.get_unit_params('cost')
         self.REMOVE_HEALTH_THRESH = 0.3
         self.BUILD_DESTRUCTOR_WALLS_THRESH = 30
+        self.CORNER_DAMAGE_THRESH = 50
 
         # What reactive defence can do, is look at the map, and see if it's a filter.
         # If it's a filter and was attacked by pings and died, replace with a DEST.
@@ -61,6 +62,17 @@ class Defences:
             # Chunk 3 --> Encryptors + some more defences
         ]
         self.TEMPLATE_MASK = [item[0] for item in self.BASE_TEMPLATE]
+        self.LEFT_CORNER_MASK = [
+            [0, 13], [1, 13], [2, 13],
+                     [1, 12], [2, 12],
+                              [2, 11],
+        ]
+        self.RIGHT_CORNER_MASK = [
+            [25, 13], [26, 13], [27, 13],
+            [25, 12], [26, 12],
+            [25, 11]
+        ]
+        self.R_CORNER_ATTACKED, self.L_CORNER_ATTACKED = False, False
 
     def get_unit_params(self, param):
         """ Extracts config parameters of units into a python dictionary.
@@ -111,12 +123,79 @@ class Defences:
         for loc in locs:
             state.attempt_remove(loc)
 
-    def build_template(self, state: gamelib.AdvancedGameState):
+    @staticmethod
+    def check_corner(curr_state, prev_state, corner_mask):
+        damage_sum = 0
+
+        for loc in corner_mask:
+            prev_units = prev_state.game_map[loc]
+            curr_units = curr_state.game_map[loc]
+            prev_unit = None
+            prev_type = None
+            curr_unit = None
+
+            if prev_units is None or prev_units == []:
+                # If unit did not exist here in last round, ignore location.
+                continue
+            else:
+                for unit in prev_units:
+                    if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]:
+                        # If we find a defensive unit, then remember it.
+                        prev_unit = unit
+                        prev_type = unit.unit_type
+                        break
+
+            if prev_unit:
+                if curr_units is None or curr_units == []:
+                    # If we had a unit in prev round, but not in this one, increment damage.
+                    damage_sum += prev_unit.stability
+                else:
+                    for unit in curr_units:
+                        if unit.unit_type == prev_type:
+                            # If we find a defensive unit of same type as last round, remember it.
+                            curr_unit = unit
+                            break
+                    # Increment damage taken based on change in unit stability.
+                    damage_sum += curr_unit.stability - prev_unit.stability
+
+        return damage_sum
+
+    def were_corners_attacked(self, curr_state, prev_state):
+        """ Checks if corners were attacked in the last round.
+
+        :param curr_state: state object.
+        :param prev_state: state object.
+        """
+        left_damage, right_damage = 0, 0
+
+        if not self.R_CORNER_ATTACKED:
+            right_damage = self.check_corner(curr_state, prev_state, self.RIGHT_CORNER_MASK)
+
+        if not self.L_CORNER_ATTACKED:
+            left_damage = self.check_corner(curr_state, prev_state, self.LEFT_CORNER_MASK)
+
+        self.R_CORNER_ATTACKED = right_damage > self.CORNER_DAMAGE_THRESH
+        self.L_CORNER_ATTACKED = left_damage > self.CORNER_DAMAGE_THRESH
+
+    def build_template(self, state: gamelib.AdvancedGameState, prev_state):
         """ Adds any defences to the priority queue if we were destroyed.
 
         :param state: game state.
-        :return:
+        :param prev_state: game state.
         """
+        if prev_state:
+            self.were_corners_attacked(state, prev_state)
+
+            if self.R_CORNER_ATTACKED:
+                for i in range(len(self.BASE_TEMPLATE)):
+                    if self.BASE_TEMPLATE[i] in self.RIGHT_CORNER_MASK:
+                        self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+
+            if self.L_CORNER_ATTACKED:
+                for i in range(len(self.BASE_TEMPLATE)):
+                    if self.BASE_TEMPLATE[i] in self.LEFT_CORNER_MASK:
+                        self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+
         for unit in self.BASE_TEMPLATE:
             if state.get_resource(state.CORES) > self.UNIT_COSTS[unit[1]]:
                 use_destruct = state.get_resource(state.CORES) > self.BUILD_DESTRUCTOR_WALLS_THRESH

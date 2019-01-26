@@ -1,4 +1,4 @@
-#  Defences class, will hold the priorities for everything, and find out
+# Defences class, will hold the priorities for everything, and find out
 # what kind of shit to build next. Put reactive defence stuff in here
 import gamelib
 from gamelib import debug_write
@@ -7,6 +7,7 @@ from gamelib import debug_write
 class Defences:
     def __init__(self, config):
         """ Constructor.
+
         :param config: config object.
         """
         global FILTER, ENCRYPTOR, DESTRUCTOR, PING, EMP, SCRAMBLER, TEMPLATE_MASK
@@ -21,6 +22,8 @@ class Defences:
         self.UNIT_HEALTH = self.get_unit_params('stability')
         self.UNIT_COSTS = self.get_unit_params('cost')
         self.REMOVE_HEALTH_THRESH = 0.3
+        self.BUILD_DESTRUCTOR_WALLS_THRESH = 30
+        self.CORNER_DAMAGE_THRESH = 30
 
         # What reactive defence can do, is look at the map, and see if it's a filter.
         # If it's a filter and was attacked by pings and died, replace with a DEST.
@@ -83,9 +86,21 @@ class Defences:
 
         ]
         self.TEMPLATE_MASK = [item[0] for item in self.BASE_TEMPLATE]
+        self.LEFT_CORNER_MASK = [
+            [0, 13], [1, 13], [2, 13],
+                     [1, 12], [2, 12],
+                              [2, 11],
+        ]
+        self.RIGHT_CORNER_MASK = [
+            [25, 13], [26, 13], [27, 13],
+            [25, 12], [26, 12],
+            [25, 11]
+        ]
+        self.R_CORNER_ATTACKED, self.L_CORNER_ATTACKED = False, False
 
     def get_unit_params(self, param):
         """ Extracts config parameters of units into a python dictionary.
+
         :param param: parameter key.
         :return: (dict)
         """
@@ -100,6 +115,7 @@ class Defences:
 
     def find_low_health_units(self, state: gamelib.AdvancedGameState, search_mask, health_thresh):
         """ Find all static units that lost some health during last round.
+
         :param state: current game state.
         :param search_mask: list of locations - mask where to  search for damaged units.
         :param health_thresh: threshold for filtering low health units.
@@ -123,6 +139,7 @@ class Defences:
     @staticmethod
     def destroy_low_health_units(state, locs):
         """ Removes units provided in locs list.
+
         :param state: state object.
         :param locs: list of locations to be removed.
         :return:
@@ -130,15 +147,107 @@ class Defences:
         for loc in locs:
             state.attempt_remove(loc)
 
-    def build_template(self, state: gamelib.AdvancedGameState):
-        """ Adds any defences to the priority queue if we were destroyed.
-        :param state: game state.
-        :return:
+    @staticmethod
+    def check_corner(curr_state, prev_state, corner_mask):
+        damage_sum = 0
+
+        for loc in corner_mask:
+            prev_units = prev_state.game_map[loc]
+            curr_units = curr_state.game_map[loc]
+            prev_unit = None
+            prev_type = None
+            curr_unit = None
+
+            if prev_units is None or prev_units == []:
+                # If unit did not exist here in last round, ignore location.
+                continue
+            else:
+                for unit in prev_units:
+                    if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]:
+                        # If we find a defensive unit, then remember it.
+                        prev_unit = unit
+                        prev_type = unit.unit_type
+                        break
+
+            if prev_unit:
+                if curr_units is None or curr_units == []:
+                    # If we had a unit in prev round, but not in this one, increment damage.
+                    damage_sum += prev_unit.stability
+                else:
+                    for unit in curr_units:
+                        if unit.unit_type == prev_type:
+                            # If we find a defensive unit of same type as last round, remember it.
+                            curr_unit = unit
+                            break
+                    # Increment damage taken based on change in unit stability.
+                    damage_sum += curr_unit.stability - prev_unit.stability
+
+        return damage_sum
+
+    def were_corners_attacked(self, curr_state, prev_state):
+        """ Checks if corners were attacked in the last round.
+
+        :param curr_state: state object.
+        :param prev_state: state object.
         """
+        left_damage, right_damage = 0, 0
+
+        if not self.R_CORNER_ATTACKED:
+            right_damage = max(0, self.check_corner(curr_state, prev_state, self.RIGHT_CORNER_MASK))
+            debug_write("Right damage ", right_damage)
+
+        if not self.L_CORNER_ATTACKED:
+            left_damage = max(0, self.check_corner(curr_state, prev_state, self.LEFT_CORNER_MASK))
+            debug_write("Left damage ", left_damage)
+
+        self.R_CORNER_ATTACKED = right_damage > self.CORNER_DAMAGE_THRESH
+        self.L_CORNER_ATTACKED = left_damage > self.CORNER_DAMAGE_THRESH
+
+    def build_template(self, state: gamelib.AdvancedGameState, prev_state):
+        """ Adds any defences to the priority queue if we were destroyed.
+
+        :param state: game state.
+        :param prev_state: game state.
+        """
+        if prev_state:
+            self.were_corners_attacked(state, prev_state)
+            debug_write(self.R_CORNER_ATTACKED, self.L_CORNER_ATTACKED)
+            #
+            # if self.R_CORNER_ATTACKED:
+            #     for i in range(len(self.BASE_TEMPLATE)):
+            #         if self.BASE_TEMPLATE[i][0] in self.RIGHT_CORNER_MASK:
+            #             debug_write("Updating Template ", self.BASE_TEMPLATE[i])
+            #             self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+            #
+            # if self.L_CORNER_ATTACKED:
+            #     for i in range(len(self.BASE_TEMPLATE)):
+            #         if self.BASE_TEMPLATE[i][0] in self.LEFT_CORNER_MASK:
+            #             debug_write("Updating Template ", self.BASE_TEMPLATE[i])
+            #             self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+            if self.R_CORNER_ATTACKED:
+                for i in range(len(self.BASE_TEMPLATE)):
+                    if self.BASE_TEMPLATE[i][0] in self.RIGHT_CORNER_MASK:
+                        debug_write("Updating Template ", self.BASE_TEMPLATE[i])
+                        self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+
+                for loc in self.RIGHT_CORNER_MASK:
+                    self.BASE_TEMPLATE.append((loc, DESTRUCTOR))
+
+            if self.L_CORNER_ATTACKED:
+                for i in range(len(self.BASE_TEMPLATE)):
+                    if self.BASE_TEMPLATE[i][0] in self.LEFT_CORNER_MASK:
+                        debug_write("Updating Template ", self.BASE_TEMPLATE[i])
+                        self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
+
+                for loc in self.LEFT_CORNER_MASK:
+                    self.BASE_TEMPLATE.append((loc, DESTRUCTOR))
+
         for unit in self.BASE_TEMPLATE:
             if state.get_resource(state.CORES) > self.UNIT_COSTS[unit[1]]:
-                if state.can_spawn(unit[1], unit[0]):
-                    state.attempt_spawn(unit[1], unit[0])
+                use_destruct = state.get_resource(state.CORES) > self.BUILD_DESTRUCTOR_WALLS_THRESH
+                unit_type = DESTRUCTOR if use_destruct else unit[1]
+                if state.can_spawn(unit_type, unit[0]):
+                    state.attempt_spawn(unit_type, unit[0])
 
         low_health_units = self.find_low_health_units(
             state, self.TEMPLATE_MASK, self.REMOVE_HEALTH_THRESH)
@@ -163,4 +272,5 @@ class Defences:
     #                 prev_units.append(unit)
     #                 prev_locs.append(loc)
     #
-#     return zip(prev_locs, prev_units)
+    #     return zip(prev_locs, prev_units)
+

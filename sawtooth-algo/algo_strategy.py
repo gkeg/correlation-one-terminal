@@ -10,6 +10,7 @@ class AlgoStrategy(gamelib.AlgoCore):
     def __init__(self):
         super().__init__()
         random.seed()
+        self.prev_state = None
 
     def on_game_start(self, config):
         """
@@ -42,9 +43,10 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  # Uncomment this line to suppress warnings.
 
-        self.build_defences(game_state)
+        self.build_defences(game_state, self.prev_state)
 
         if game_state.turn_number != 0:
+            self.prev_state = copy.deepcopy(game_state)
             self.best_spawn(game_state)
 
         game_state.submit_turn()
@@ -54,8 +56,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         while state.can_spawn(EMP, emp_loc, 1):
             state.attempt_spawn(EMP, emp_loc, 1)
 
-    def build_defences(self, state: gamelib.AdvancedGameState):
-        self.defences.build_template(state)
+    def build_defences(self, state: gamelib.AdvancedGameState, prev_state):
+        self.defences.build_template(state, prev_state)
 
     # Spawns as many pings/scramblers at the given location
     def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
@@ -177,8 +179,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         units = [PING, EMP, SCRAMBLER]
         bits = state.get_resource(state.BITS)
 
-        og_map = copy.deepcopy(state.game_map)
-
         best = (0, None)
         for loc in locs:
             for unit in units:
@@ -187,14 +187,11 @@ class AlgoStrategy(gamelib.AlgoCore):
                     continue
 
                 if time.time() - self.time_start < 2:
-                    state.game_map = copy.deepcopy(og_map)
-                    val = self.simulate(state, unit, loc, int(bits / cost))
+                    val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
                     if val > best[0]:
                         best = (val, (loc, unit, int(bits / cost)))
                     else:
                         break
-
-        state.game_map = og_map
 
         if best[0] > 0:
             loc, unit, num = best[1]

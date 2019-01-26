@@ -5,10 +5,6 @@ import time
 import math
 import warnings
 from sys import maxsize
-
-
-from . import gamelib
-
 # Import our strategies
 # offense
 from strategies import emp_cheese, sell_vulnerable_line
@@ -36,6 +32,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         SCRAMBLER = config["unitInformation"][5]["shorthand"]
 
         self.defences = Defences(config)
+        self.prev_state = None
 
     def on_turn(self, turn_state):
         """
@@ -50,7 +47,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
 
-        self.defences.build_template(game_state)
+        self.defences.build_template(game_state, self.prev_state)
+        self.prev_state = copy.deepcopy(game_state)
 
         if game_state.turn_number != 0:
             try:
@@ -76,14 +74,12 @@ class AlgoStrategy(gamelib.AlgoCore):
                     continue
 
                 if time.time() - self.time_start < 2:
-                    # state.game_map = copy.deepcopy(og_map)
                     val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
                     if val > best[0]:
                         best = (val, (loc, unit, int(bits / cost)))
                     else:
                         break
 
-        # state.game_map = og_map
         top = 9 if state.turn_number <= 6 else 15
 
         if best[0] > 0:
