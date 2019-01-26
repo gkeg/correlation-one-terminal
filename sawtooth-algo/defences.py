@@ -1,7 +1,6 @@
 # Defences class, will hold the priorities for everything, and find out
 # what kind of shit to build next. Put reactive defence stuff in here
 import gamelib
-import copy
 from gamelib import debug_write
 
 
@@ -18,6 +17,7 @@ class Defences:
         PING = config["unitInformation"][3]["shorthand"]
         EMP = config["unitInformation"][4]["shorthand"]
         SCRAMBLER = config["unitInformation"][5]["shorthand"]
+
         self.config = config
         self.UNIT_HEALTH = self.get_unit_params('stability')
         self.UNIT_COSTS = self.get_unit_params('cost')
@@ -61,7 +61,6 @@ class Defences:
             ([23, 11], FILTER),
             # Chunk 3 --> Encryptors + some more defences
         ]
-        self.prev_state = None
         self.TEMPLATE_MASK = [item[0] for item in self.BASE_TEMPLATE]
 
     def get_unit_params(self, param):
@@ -78,27 +77,6 @@ class Defences:
             else:
                 params[unit['shorthand']] = unit[param]
         return params
-
-    def find_prev_unit_states(self, search_mask):
-        """ Find states of units under search mast in the previous state.
-
-        :param search_mask: list of locations where to search for states.
-        :return: list of (location, unit) pairs.
-        """
-        prev_units = []
-        prev_locs = []
-
-        for loc in search_mask:
-            units = self.prev_state.game_map[loc]
-
-            if units is None or units == []:
-                continue
-            else:
-                for unit in units:
-                    prev_units.append(unit)
-                    prev_locs.append(loc)
-
-        return zip(prev_locs, prev_units)
 
     def find_low_health_units(self, state: gamelib.AdvancedGameState, search_mask, health_thresh):
         """ Find all static units that lost some health during last round.
@@ -149,4 +127,23 @@ class Defences:
             state, self.TEMPLATE_MASK, self.REMOVE_HEALTH_THRESH)
         self.destroy_low_health_units(state, low_health_units)
 
-        self.prev_state = copy.deepcopy(state)
+    # def find_prev_unit_states(self, search_mask):
+    #     """ Find states of units under search mast in the previous state.
+    #
+    #     :param search_mask: list of locations where to search for states.
+    #     :return: list of (location, unit) pairs.
+    #     """
+    #     prev_units = []
+    #     prev_locs = []
+    #
+    #     for loc in search_mask:
+    #         units = self.prev_state.game_map[loc]
+    #
+    #         if units is None or units == []:
+    #             continue
+    #         else:
+    #             for unit in units:
+    #                 prev_units.append(unit)
+    #                 prev_locs.append(loc)
+    #
+    #     return zip(prev_locs, prev_units)

@@ -1,9 +1,6 @@
 import gamelib
 import random
 import copy
-import math
-import warnings
-from sys import maxsize
 
 from defences import Defences
 
@@ -189,6 +186,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         loc, unit, num = best[1]
         state.attempt_spawn(unit, loc, num)
 
+    @staticmethod
     def simulate(state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
         map = state.game_map
 
