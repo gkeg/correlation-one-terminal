@@ -57,7 +57,7 @@ class Defences:
             ([14, 11], FILTER),
             ([15, 11], FILTER),
             ([17, 11], FILTER),
-            ([4, 9], ENCRYPTOR),
+            ([4, 9],   ENCRYPTOR),
             ([18, 11], FILTER),
             ([19, 11], FILTER),
             ([20, 11], FILTER),
@@ -66,7 +66,7 @@ class Defences:
 
             # Chunk 3 --> Encryptors + Some more defences
             ([25, 12], DESTRUCTOR),
-            ([5, 9], ENCRYPTOR),
+            ([5, 9],   ENCRYPTOR),
             ([24, 13], FILTER),
             ([23, 13], FILTER),
             ([22, 13], FILTER),
@@ -75,8 +75,8 @@ class Defences:
             ([19, 13], FILTER),
             ([18, 13], FILTER),
             ([17, 13], FILTER),
-            ([22, 9], ENCRYPTOR),
-            ([23, 9], ENCRYPTOR),
+            ([22, 9],  ENCRYPTOR),
+            ([23, 9],  ENCRYPTOR),
             ([16, 13], FILTER),
             ([15, 13], FILTER),
             ([14, 13], FILTER),
@@ -211,7 +211,10 @@ class Defences:
         """
         if prev_state:
             self.were_corners_attacked(state, prev_state)
-            debug_write(self.R_CORNER_ATTACKED, self.L_CORNER_ATTACKED)
+            debug_write(
+                "Right Corner State: {}".format(self.R_CORNER_ATTACKED),
+                "Left Corner State: {}".format(self.L_CORNER_ATTACKED)
+            )
             #
             # if self.R_CORNER_ATTACKED:
             #     for i in range(len(self.BASE_TEMPLATE)):
@@ -227,20 +230,24 @@ class Defences:
             if self.R_CORNER_ATTACKED:
                 for i in range(len(self.BASE_TEMPLATE)):
                     if self.BASE_TEMPLATE[i][0] in self.RIGHT_CORNER_MASK:
-                        debug_write("Updating Template ", self.BASE_TEMPLATE[i])
                         self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
 
+                new_units = []
                 for loc in self.RIGHT_CORNER_MASK:
-                    self.BASE_TEMPLATE.append((loc, DESTRUCTOR))
+                    if loc not in self.TEMPLATE_MASK:
+                        new_units.append((loc, DESTRUCTOR))
+                self.BASE_TEMPLATE = new_units + self.BASE_TEMPLATE
 
             if self.L_CORNER_ATTACKED:
                 for i in range(len(self.BASE_TEMPLATE)):
                     if self.BASE_TEMPLATE[i][0] in self.LEFT_CORNER_MASK:
-                        debug_write("Updating Template ", self.BASE_TEMPLATE[i])
                         self.BASE_TEMPLATE[i] = (self.BASE_TEMPLATE[i][0], DESTRUCTOR)
 
+                new_units = []
                 for loc in self.LEFT_CORNER_MASK:
-                    self.BASE_TEMPLATE.append((loc, DESTRUCTOR))
+                    if loc not in self.TEMPLATE_MASK:
+                        new_units.append((loc, DESTRUCTOR))
+                self.BASE_TEMPLATE = new_units + self.BASE_TEMPLATE
 
         for unit in self.BASE_TEMPLATE:
             if state.get_resource(state.CORES) > self.UNIT_COSTS[unit[1]]:
