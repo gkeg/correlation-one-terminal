@@ -177,7 +177,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         units = [PING, EMP, SCRAMBLER]
         bits = state.get_resource(state.BITS)
 
-        og_map = copy.deepcopy(state.game_map)
+        # og_map = copy.deepcopy(state.game_map)
 
         best = (0, None)
         for loc in locs:
@@ -187,18 +187,19 @@ class AlgoStrategy(gamelib.AlgoCore):
                     continue
 
                 if time.time() - self.time_start < 2:
-                    state.game_map = copy.deepcopy(og_map)
-                    val = self.simulate(state, unit, loc, int(bits / cost))
+                    # state.game_map = copy.deepcopy(og_map)
+                    val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
                     if val > best[0]:
                         best = (val, (loc, unit, int(bits / cost)))
                     else:
                         break
 
-        state.game_map = og_map
+        # state.game_map = og_map
 
+        top = 8 if state.turn_number <= 8 else 12
         if best[0] > 0:
             loc, unit, num = best[1]
-            if best[0] > num * 2:
+            if best[0] > num * 2 or state.get_resource(state.BITS) >= top:
                 state.attempt_spawn(unit, loc, num)
         else:
             self.attack(state)
@@ -238,9 +239,8 @@ class AlgoStrategy(gamelib.AlgoCore):
 
             for i in range(frames):
                 defense_dmg = 4 * len(state.get_attackers(loc, 0))
-                our_dmg = len(map[loc]) * dmg
-
                 initial = len(map[loc])
+                our_dmg = initial * dmg
 
                 if map[loc]:
                     target = state.get_target(map[loc][0])
