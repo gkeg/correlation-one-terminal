@@ -84,7 +84,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         dest_locs = [[2, 11], [6, 11], [11, 11], [16, 11], [21, 11], [25, 11]]
         filter_locs = [[0, 13], [1, 12], [26, 12], [27, 13]]
 
-        for dest in destr_locs:
+        for dest in dest_locs:
             if state.can_spawn(DESTRUCTOR, dest):
                 state.attempt_spawn(DESTRUCTOR, dest)
 
