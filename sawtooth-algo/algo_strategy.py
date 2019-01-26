@@ -1,15 +1,8 @@
 import gamelib
 import random
 import copy
-import math
-import warnings
-from sys import maxsize
+import time
 
-from . import gamelib
-
-# Import our strategies
-# offense
-from strategies import emp_cheese, sell_vulnerable_line
 from defences import Defences
 
 
@@ -25,7 +18,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Configuring your custom algo strategy...')
         self.config = config
         global FILTER, ENCRYPTOR, DESTRUCTOR, PING, EMP, SCRAMBLER
-        self.filter, self.encryptor, self.destructor, self.ping, self.emp, self.scrambler = [i for i in range(6)]
+        self.filter,self.encryptor,self.destructor,self.ping,self.emp,self.scrambler = [i for i in range(6)]
         FILTER = config["unitInformation"][0]["shorthand"]
         ENCRYPTOR = config["unitInformation"][1]["shorthand"]
         DESTRUCTOR = config["unitInformation"][2]["shorthand"]
@@ -34,6 +27,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         SCRAMBLER = config["unitInformation"][5]["shorthand"]
 
         self.defences = Defences(config)
+        self.time_start = 0
 
     def on_turn(self, turn_state):
         """
@@ -48,28 +42,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  # Uncomment this line to suppress warnings.
 
-        '''
-        # Perform setup if the turn number is zero
-        # Check if we should move up our setup, or not.
-        if game_state.turn_number == 0:
-            self.sawtooth_setup(game_state)
-            return
-
-        # Push anything important to the front of the priority queue
-        self.reactive_defence()
-
-        # Check if we want to rush them, if so, then do it!
-        rush_loc, rush_unit = self.find_rush_spot(game_state)
-        if rush_loc is not None:
-            self.attack_hole(game_state, rush_loc, rush_unit)
-            game_state.submit_turn()
-            return
-
-        # Sawtooth defence otherwise
-        self.sawtooth(game_state)
-        '''
-
-        self.defences.refresh_state(game_state)
         self.build_defences(game_state)
 
         if game_state.turn_number != 0:
@@ -83,11 +55,7 @@ class AlgoStrategy(gamelib.AlgoCore):
             state.attempt_spawn(EMP, emp_loc, 1)
 
     def build_defences(self, state: gamelib.AdvancedGameState):
-        # When we're at full build, do nothing!
-        while state.get_resource(state.CORES) > 0 and not self.defences.build_done():
-            loc, defence_type = self.defences.get_next_defence()
-            if state.can_spawn(defence_type, loc):
-                state.attempt_spawn(defence_type, loc)
+        self.defences.build_template(state)
 
     # Spawns as many pings/scramblers at the given location
     def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
@@ -115,7 +83,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         dest_locs = [[2, 11], [6, 11], [11, 11], [16, 11], [21, 11], [25, 11]]
         filter_locs = [[0, 13], [1, 12], [26, 12], [27, 13]]
 
-        for dest in destr_locs:
+        for dest in dest_locs:
             if state.can_spawn(DESTRUCTOR, dest):
                 state.attempt_spawn(DESTRUCTOR, dest)
 
@@ -204,23 +172,38 @@ class AlgoStrategy(gamelib.AlgoCore):
         return filtered
 
     def best_spawn(self, state):
+        self.time_start = time.time()
         locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
         units = [PING, EMP, SCRAMBLER]
         bits = state.get_resource(state.BITS)
+
+        og_map = copy.deepcopy(state.game_map)
 
         best = (0, None)
         for loc in locs:
             for unit in units:
                 cost = 3 if unit == EMP else 1
+                if not state.can_spawn(unit, loc):
+                    continue
 
-                val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
-                if val > best[0]:
-                    best = (val, (loc, unit, int(bits / cost)))
+                if time.time() - self.time_start < 2:
+                    state.game_map = copy.deepcopy(og_map)
+                    val = self.simulate(state, unit, loc, int(bits / cost))
+                    if val > best[0]:
+                        best = (val, (loc, unit, int(bits / cost)))
+                    else:
+                        break
 
-        loc, unit, num = best[1]
-        state.attempt_spawn(unit, loc, num)
+        state.game_map = og_map
 
-    def simulate(state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
+        if best[0] > 0:
+            loc, unit, num = best[1]
+            if best[0] > num * 2:
+                state.attempt_spawn(unit, loc, num)
+        else:
+            self.attack(state)
+
+    def simulate(self, state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
         map = state.game_map
 
         """
@@ -229,9 +212,6 @@ class AlgoStrategy(gamelib.AlgoCore):
         target_edge = map.TOP_RIGHT if spawn_loc[0] < 14 else map.TOP_LEFT
 
         path = state.find_path_to_edge(spawn_loc, target_edge)
-
-        # map.add_unit(PING, [14,0], player_index=0)
-        # print(state.get_attackers([13,14], 0))
 
         total_dmg = 0
         total_cores = 0
@@ -270,7 +250,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 if target:
                     target.stability -= our_dmg
                     total_dmg += our_dmg
-                    total_cores += (our_dmg / target.stability) * target.cost
+                    total_cores += (our_dmg / target.max_stability) * target.cost
                     if target.stability < 0:
                         map.remove_unit([target.x, target.y])
 
@@ -304,12 +284,13 @@ class AlgoStrategy(gamelib.AlgoCore):
 
             idx += 1
 
-            mod_path = state.find_path_to_edge(spawn_loc, target_edge)
-            if path != mod_path and loc in mod_path:
-                idx = mod_path.index(loc) + 1
-                path = mod_path
+            if loc[1] > 14:
+                mod_path = state.find_path_to_edge(spawn_loc, target_edge)
+                if path != mod_path and loc in mod_path:
+                    idx = mod_path.index(loc) + 1
+                    path = mod_path
 
-        return 5 * len(pings) + total_cores
+        return 3.5 * len(pings) + total_cores
 
 
 if __name__ == "__main__":
