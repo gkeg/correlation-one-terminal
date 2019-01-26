@@ -5,7 +5,6 @@ import math
 import warnings
 from sys import maxsize
 
-
 from . import gamelib
 
 # Import our strategies
@@ -26,7 +25,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write('Configuring your custom algo strategy...')
         self.config = config
         global FILTER, ENCRYPTOR, DESTRUCTOR, PING, EMP, SCRAMBLER
-        self.filter,self.encryptor,self.destructor,self.ping,self.emp,self.scrambler = [i for i in range(6)]
+        self.filter, self.encryptor, self.destructor, self.ping, self.emp, self.scrambler = [i for i in range(6)]
         FILTER = config["unitInformation"][0]["shorthand"]
         ENCRYPTOR = config["unitInformation"][1]["shorthand"]
         DESTRUCTOR = config["unitInformation"][2]["shorthand"]
@@ -47,7 +46,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state = gamelib.AdvancedGameState(self.config, turn_state)
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
-        game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
+        game_state.suppress_warnings(True)  # Uncomment this line to suppress warnings.
 
         '''
         # Perform setup if the turn number is zero
@@ -74,10 +73,9 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.build_defences(game_state)
 
         if game_state.turn_number != 0:
-            self.attack(game_state)
+            self.best_spawn(game_state)
 
         game_state.submit_turn()
-
 
     def attack(self, state: gamelib.AdvancedGameState):
         emp_loc = [3, 10]
@@ -106,8 +104,6 @@ class AlgoStrategy(gamelib.AlgoCore):
     def sawtooth(self, state: gamelib.AdvancedGameState):
         # Find the defences that were destroyed
         destroyed = self.find_destroyed_defences(state)
-
-
 
     # Find the defences that were destroyed last term
     def find_destroyed_defences(self, state: gamelib.AdvancedGameState):
@@ -148,12 +144,11 @@ class AlgoStrategy(gamelib.AlgoCore):
             if state.can_spawn(SCRAMBLER, s):
                 state.attempt_spawn(SCRAMBLER, s)
 
-
     def blackbeard(self, state: gamelib.AdvancedGameState, left=False):
         # Do initial first turn setup
         # Spawn front destructors and encryptors
-        destr = [[23,13], [24, 13]]
-        encr = [[23,12], [24,12], [25,13], [23,11]]
+        destr = [[23, 13], [24, 13]]
+        encr = [[23, 12], [24, 12], [25, 13], [23, 11]]
         for i in destr:
             if state.can_spawn(DESTRUCTOR, i):
                 state.attempt_spawn(DESTRUCTOR, i)
@@ -165,15 +160,15 @@ class AlgoStrategy(gamelib.AlgoCore):
         end = 12 if state.turn_number > 0 else 19
 
         # open = False
-        #spawn remaining filters
-        for i in range(22,end,-1):
+        # spawn remaining filters
+        for i in range(22, end, -1):
             # if not state.contains_stationary_unit([i,i-12]) and state.get_resource(state.CORES) < 1:
             #     open = True
-            if state.can_spawn(FILTER, [i,i-12]):
-                state.attempt_spawn(FILTER, [i,i-12])
+            if state.can_spawn(FILTER, [i, i - 12]):
+                state.attempt_spawn(FILTER, [i, i - 12])
 
         # if we have extra cores use some of them18,13,9,5 then filters between
-        prio = [[1,13], [1,12], [0,13],[18,10], [18,11], [13,11], [9,10], [9,11],[5,11]]
+        prio = [[1, 13], [1, 12], [0, 13], [18, 10], [18, 11], [13, 11], [9, 10], [9, 11], [5, 11]]
         which = [DESTRUCTOR, DESTRUCTOR, FILTER, DESTRUCTOR, FILTER, DESTRUCTOR, DESTRUCTOR, FILTER, DESTRUCTOR]
 
         for i in range(len(prio)):
@@ -184,23 +179,22 @@ class AlgoStrategy(gamelib.AlgoCore):
         i = 0
         # Try to spawn some random stuff
         while i < 10 and state.get_resource(state.CORES) > 6:
-            row = random.randint(10,11)
-            col = random.randint(13-row, 19)
-            type = DESTRUCTOR if random.randint(0,1) else FILTER
-            if state.can_spawn(type, [row,col] ):
-                state.attempt_spawn(type, [row,col])
+            row = random.randint(10, 11)
+            col = random.randint(13 - row, 19)
+            type = DESTRUCTOR if random.randint(0, 1) else FILTER
+            if state.can_spawn(type, [row, col]):
+                state.attempt_spawn(type, [row, col])
 
         if state.turn_number == 0:
-            state.attempt_spawn(PING, [13,0],2)
-            state.attempt_spawn(PING, [14,0],2)
+            state.attempt_spawn(PING, [13, 0], 2)
+            state.attempt_spawn(PING, [14, 0], 2)
         # elif open:
         #     state.attempt_spawn(EMP, [17, 3])
         elif state.turn_number % 2:
             bits = state.get_resource(state.BITS)
             if bits > 4:
-                state.attempt_spawn(PING, [14,0], 4)
-            state.attempt_spawn(PING, [13,0], int(state.get_resource(state.BITS)))
-
+                state.attempt_spawn(PING, [14, 0], 4)
+            state.attempt_spawn(PING, [13, 0], int(state.get_resource(state.BITS)))
 
     def filter_blocked_locations(self, locations, game_state):
         filtered = []
@@ -208,6 +202,114 @@ class AlgoStrategy(gamelib.AlgoCore):
             if not game_state.contains_stationary_unit(location):
                 filtered.append(location)
         return filtered
+
+    def best_spawn(self, state):
+        locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
+        units = [PING, EMP, SCRAMBLER]
+        bits = state.get_resource(state.BITS)
+
+        best = (0, None)
+        for loc in locs:
+            for unit in units:
+                cost = 3 if unit == EMP else 1
+
+                val = self.simulate(copy.deepcopy(state), unit, loc, int(bits / cost))
+                if val > best[0]:
+                    best = (val, (loc, unit, int(bits / cost)))
+
+        loc, unit, num = best[1]
+        state.attempt_spawn(unit, loc, num)
+
+    def simulate(state: gamelib.AdvancedGameState, unit_type, spawn_loc=(13, 0), num_units=1):
+        map = state.game_map
+
+        """
+        TODO: ENCRYPTORS
+        """
+        target_edge = map.TOP_RIGHT if spawn_loc[0] < 14 else map.TOP_LEFT
+
+        path = state.find_path_to_edge(spawn_loc, target_edge)
+
+        # map.add_unit(PING, [14,0], player_index=0)
+        # print(state.get_attackers([13,14], 0))
+
+        total_dmg = 0
+        total_cores = 0
+
+        frames = 2 if unit_type == PING else 4
+        dmg = 0 if unit_type == SCRAMBLER else (1 if unit_type == PING else 3)
+
+        for i in range(num_units):
+            map.add_unit(unit_type, spawn_loc)
+        idx = 0
+
+        remaining = map[spawn_loc]
+
+        map.remove_unit(spawn_loc)
+        pings = 0
+        while idx < len(path):
+
+            loc = path[idx]
+
+            for i in remaining:
+                i.x = loc[0]
+                i.y = loc[1]
+                map[loc].append(i)
+
+            for i in range(frames):
+                defense_dmg = 4 * len(state.get_attackers(loc, 0))
+                our_dmg = len(map[loc]) * dmg
+
+                initial = len(map[loc])
+
+                if map[loc]:
+                    target = state.get_target(map[loc][0])
+                else:
+                    break
+
+                if target:
+                    target.stability -= our_dmg
+                    total_dmg += our_dmg
+                    total_cores += (our_dmg / target.stability) * target.cost
+                    if target.stability < 0:
+                        map.remove_unit([target.x, target.y])
+
+                dead = 0
+                for i in range(initial):
+
+                    if defense_dmg <= 0 or dead == len(map[loc]):
+                        break
+
+                    # Killed one, did they kill more
+                    if defense_dmg >= map[loc][dead].stability:
+                        defense_dmg -= map[loc][dead].stability
+                        dead += 1
+
+                    # They didn't kill this one
+                    else:
+                        map[loc][dead].stability -= defense_dmg
+                        break
+
+                # kill the dead ones
+                for i in range(dead):
+                    map[loc].pop(0)
+
+            remaining = map[loc]
+            pings = remaining
+
+            if len(remaining) == 0:
+                break
+
+            map.remove_unit(loc)
+
+            idx += 1
+
+            mod_path = state.find_path_to_edge(spawn_loc, target_edge)
+            if path != mod_path and loc in mod_path:
+                idx = mod_path.index(loc) + 1
+                path = mod_path
+
+        return 5 * len(pings) + total_cores
 
 
 if __name__ == "__main__":
