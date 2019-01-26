@@ -62,6 +62,11 @@ class AlgoCore(object):
                     """
                     If stateType == 1, this game_state_string string represents the results of an action phase
                     """
+                    # state = json.loads(game_state_string)
+                    # if 'events' in state.keys():
+                    #     if 'damage' in state['events']:
+                    #         if state['events']['damage']:
+                    #             debug_write("Damage: ###################### ", state['events']['damage'])
                     continue
                 elif stateType == 2:
                     """

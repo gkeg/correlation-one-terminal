@@ -22,6 +22,7 @@ class Defences:
         self.UNIT_HEALTH = self.get_unit_params('stability')
         self.UNIT_COSTS = self.get_unit_params('cost')
         self.REMOVE_HEALTH_THRESH = 0.3
+        self.BUILD_DESTRUCTOR_WALLS_THRESH = 30
 
         # What reactive defence can do, is look at the map, and see if it's a filter.
         # If it's a filter and was attacked by pings and died, replace with a DEST.
@@ -120,8 +121,10 @@ class Defences:
         """
         for unit in self.BASE_TEMPLATE:
             if state.get_resource(state.CORES) > self.UNIT_COSTS[unit[1]]:
-                if state.can_spawn(unit[1], unit[0]):
-                    state.attempt_spawn(unit[1], unit[0])
+                use_destruct = state.get_resource(state.CORES) > self.BUILD_DESTRUCTOR_WALLS_THRESH
+                unit_type = DESTRUCTOR if use_destruct else unit[1]
+                if state.can_spawn(unit_type, unit[0]):
+                    state.attempt_spawn(unit_type, unit[0])
 
         low_health_units = self.find_low_health_units(
             state, self.TEMPLATE_MASK, self.REMOVE_HEALTH_THRESH)
