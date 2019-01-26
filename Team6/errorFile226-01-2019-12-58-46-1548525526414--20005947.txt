@@ -1,0 +1,11 @@
+---------------- Starting Your Algo --------------------
+Configuring your custom algo strategy...
+Performing turn 0 of your custom algo strategy
+Traceback (most recent call last):
+  File "/Users/tilman/terminal/correlation-one-terminal/Team6_GTR/algo_strategy.py", line 289, in <module>
+    algo.start()
+  File "/Users/tilman/terminal/correlation-one-terminal/Team6_GTR/gamelib/algocore.py", line 60, in start
+    game_state_string = get_command()
+  File "/Users/tilman/terminal/correlation-one-terminal/Team6_GTR/gamelib/util.py", line 12, in get_command
+    ret = sys.stdin.readline()
+KeyboardInterrupt
