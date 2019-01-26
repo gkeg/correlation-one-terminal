@@ -1,0 +1,249 @@
+---------------- Starting Your Algo --------------------
+Configuring your custom algo strategy...
+Performing turn 0 of your custom algo strategy
+Could not spawn FF at location [8, 11].
+Could not spawn FF at location [8, 11].
+Could not spawn FF at location [9, 11].
+Could not spawn FF at location [9, 11].
+Could not spawn FF at location [7, 10].
+Could not spawn FF at location [7, 10].
+Could not spawn FF at location [7, 9].
+Could not spawn FF at location [7, 9].
+Could not spawn FF at location [7, 8].
+Could not spawn FF at location [7, 8].
+Could not spawn FF at location [8, 7].
+Could not spawn FF at location [8, 7].
+Could not spawn FF at location [9, 7].
+Could not spawn FF at location [9, 7].
+Could not spawn FF at location [17, 11].
+Could not spawn FF at location [17, 11].
+Could not spawn FF at location [18, 11].
+Could not spawn FF at location [18, 11].
+Could not spawn FF at location [18, 10].
+Could not spawn FF at location [18, 10].
+Could not spawn FF at location [18, 9].
+Could not spawn FF at location [18, 9].
+Could not spawn FF at location [18, 8].
+Could not spawn FF at location [18, 8].
+Could not spawn FF at location [17, 7].
+Could not spawn FF at location [17, 7].
+Could not spawn FF at location [18, 7].
+Could not spawn FF at location [18, 7].
+Could not spawn FF at location [19, 7].
+Could not spawn FF at location [19, 7].
+Could not spawn DF at location [11, 7].
+Could not spawn DF at location [11, 7].
+Could not spawn DF at location [13, 9].
+Could not spawn DF at location [13, 9].
+Could not spawn DF at location [15, 11].
+Could not spawn DF at location [15, 11].
+Could not spawn DF at location [0, 13]. Not enough resources.
+Could not spawn DF at location [27, 13]. Not enough resources.
+Could not spawn EF at location [3, 11]. Not enough resources.
+Could not spawn EF at location [4, 11]. Not enough resources.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Performing turn 1 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13].
+Could not spawn DF at location [0, 13].
+Could not spawn DF at location [27, 13]. Not enough resources.
+Could not spawn EF at location [3, 11]. Not enough resources.
+Could not spawn EF at location [4, 11]. Not enough resources.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Performing turn 2 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13]. Location is blocked.
+Could not spawn DF at location [27, 13].
+Could not spawn DF at location [27, 13].
+Could not spawn EF at location [3, 11]. Not enough resources.
+Could not spawn EF at location [4, 11]. Not enough resources.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Could not spawn EI at location [3, 10].
+Could not spawn EI at location [3, 10].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn SI at location [11, 2].
+Could not spawn SI at location [9, 4].
+Could not spawn SI at location [12, 1].
+Could not spawn SI at location [19, 5].
+Performing turn 3 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13].
+Could not spawn DF at location [0, 13].
+Could not spawn DF at location [27, 13]. Location is blocked.
+Could not spawn EF at location [3, 11].
+Could not spawn EF at location [3, 11].
+Could not spawn EF at location [4, 11]. Not enough resources.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Performing turn 4 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13]. Location is blocked.
+Could not spawn DF at location [27, 13]. Location is blocked.
+Could not spawn EF at location [3, 11]. Location is blocked.
+Could not spawn EF at location [4, 11].
+Could not spawn EF at location [4, 11].
+Could not spawn EF at location [5, 11]. Not enough resources.
+Performing turn 5 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13]. Location is blocked.
+Could not spawn DF at location [27, 13]. Location is blocked.
+Could not spawn EF at location [3, 11].
+Could not spawn EF at location [3, 11].
+Could not spawn EF at location [4, 11]. Not enough resources. Location is blocked.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Could not spawn EI at location [3, 10].
+Could not spawn EI at location [3, 10].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn PI at location [14, 0].
+Could not spawn SI at location [5, 8].
+Could not spawn SI at location [26, 12].
+Could not spawn SI at location [7, 6].
+Could not spawn SI at location [22, 8].
+Performing turn 6 of your custom algo strategy
+Could not spawn FF at location [8, 11]. Location is blocked.
+Could not spawn FF at location [9, 11]. Location is blocked.
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Location is blocked.
+Could not spawn DF at location [13, 9]. Location is blocked.
+Could not spawn DF at location [15, 11]. Location is blocked.
+Could not spawn DF at location [0, 13]. Location is blocked.
+Could not spawn DF at location [27, 13]. Location is blocked.
+Could not spawn EF at location [3, 11]. Location is blocked.
+Could not spawn EF at location [4, 11]. Location is blocked.
+Could not spawn EF at location [5, 11].
+Could not spawn EF at location [5, 11].
+Performing turn 7 of your custom algo strategy
+Could not spawn FF at location [8, 11].
+Could not spawn FF at location [8, 11].
+Could not spawn FF at location [9, 11].
+Could not spawn FF at location [9, 11].
+Could not spawn FF at location [7, 10]. Location is blocked.
+Could not spawn FF at location [7, 9]. Location is blocked.
+Could not spawn FF at location [7, 8]. Location is blocked.
+Could not spawn FF at location [8, 7]. Location is blocked.
+Could not spawn FF at location [9, 7]. Location is blocked.
+Could not spawn FF at location [17, 11]. Location is blocked.
+Could not spawn FF at location [18, 11]. Location is blocked.
+Could not spawn FF at location [18, 10]. Location is blocked.
+Could not spawn FF at location [18, 9]. Location is blocked.
+Could not spawn FF at location [18, 8]. Location is blocked.
+Could not spawn FF at location [17, 7]. Location is blocked.
+Could not spawn FF at location [18, 7]. Location is blocked.
+Could not spawn FF at location [19, 7]. Location is blocked.
+Could not spawn DF at location [11, 7]. Not enough resources. Location is blocked.
+Could not spawn DF at location [13, 9]. Not enough resources. Location is blocked.
+Could not spawn DF at location [15, 11]. Not enough resources.
+Could not spawn DF at location [0, 13]. Not enough resources.
+Could not spawn DF at location [27, 13]. Not enough resources. Location is blocked.
+Could not spawn EF at location [3, 11]. Not enough resources.
+Could not spawn EF at location [4, 11]. Not enough resources.
+Could not spawn EF at location [5, 11]. Not enough resources.
+Traceback (most recent call last):
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/python-algo/algo_strategy.py", line 233, in <module>
+    algo.start()
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/python-algo/gamelib/algocore.py", line 45, in start
+    game_state_string = get_command()
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/python-algo/gamelib/util.py", line 12, in get_command
+    ret = sys.stdin.readline()
+KeyboardInterrupt

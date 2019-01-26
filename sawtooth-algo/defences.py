@@ -55,9 +55,30 @@ class Defences():
             '[19, 11]': (25, FILTER),
             '[20, 11]': (26, FILTER),
             '[22, 11]': (27, FILTER),
-            '[23, 11]': (28, FILTER),
+            '[23, 11]': (28, DESTRUCTOR),
 
             # Chunk 3 --> Encryptors + some more defences
+            '[25, 12]': (29, DESTRUCTOR),
+            '[4, 9]': (30, ENCRYPTOR),
+            '[5, 9]': (31, ENCRYPTOR),
+            '[24, 13]': (32, FILTER),
+            '[23, 13]': (33, FILTER),
+            '[22, 13]': (34, FILTER),
+            '[21, 13]': (35, FILTER),
+            '[20, 13]': (36, FILTER),
+            '[19, 13]': (37, FILTER),
+            '[18, 13]': (38, FILTER),
+            '[17, 13]': (39, FILTER),
+            '[22, 9]': (40, ENCRYPTOR),
+            '[23, 9]': (41, ENCRYPTOR),
+            '[16, 13]': (42, FILTER),
+            '[15, 13]': (43, FILTER),
+            '[14, 13]': (44, FILTER),
+            '[13, 13]': (45, FILTER),
+            '[12, 13]': (46, FILTER),
+            '[11, 13]': (47, FILTER),
+
+            # Chunk 4 --> TBD
         }
 
         # Heapify the defences: Build our priority queue
@@ -81,6 +102,10 @@ class Defences():
     def refresh_state(self, state: gamelib.AdvancedGameState):
         # Put reactive defence here
         self.pq = copy.deepcopy(self._pq)
+
+    # Repair any defences that might be damaged
+    def repair_defences(self, state: gamelib.AdvancedGameState):
+
 
 
 # For debugging

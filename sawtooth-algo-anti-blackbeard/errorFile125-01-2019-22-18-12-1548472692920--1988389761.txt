@@ -1,0 +1,30 @@
+---------------- Starting Your Algo --------------------
+Configuring your custom algo strategy...
+Performing turn 0 of your custom algo strategy
+Performing turn 1 of your custom algo strategy
+Performing turn 2 of your custom algo strategy
+Performing turn 3 of your custom algo strategy
+Performing turn 4 of your custom algo strategy
+Performing turn 5 of your custom algo strategy
+Performing turn 6 of your custom algo strategy
+Performing turn 7 of your custom algo strategy
+Traceback (most recent call last):
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/algo_strategy.py", line 264, in <module>
+    algo.start()
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/gamelib/algocore.py", line 60, in start
+    self.on_turn(game_state_string)
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/algo_strategy.py", line 56, in on_turn
+    self.best_spawn(game_state)
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/algo_strategy.py", line 78, in best_spawn
+    val = self.simulate(state, unit, loc, int(bits / cost))
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/algo_strategy.py", line 175, in simulate
+    mod_path = state.find_path_to_edge(spawn_loc, target_edge)
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/gamelib/game_state.py", line 377, in find_path_to_edge
+    return self._shortest_path_finder.navigate_multiple_endpoints(start_location, end_points, self)
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/gamelib/navigation.py", line 79, in navigate_multiple_endpoints
+    self._validate(ideal_endpoints, end_points)
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/gamelib/navigation.py", line 184, in _validate
+    if not self.game_state.game_map.in_arena_bounds(neighbor) or self.game_map[neighbor[0]][neighbor[1]].blocked:
+  File "/Users/griffinkeglevich/Desktop/TerminalAlgo/sawtooth-algo-anti-blackbeard/gamelib/game_map.py", line 99, in in_arena_bounds
+    startx = half_board - row_size
+KeyboardInterrupt
