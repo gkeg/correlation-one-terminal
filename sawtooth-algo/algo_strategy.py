@@ -45,7 +45,10 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.build_defences(game_state)
 
         if game_state.turn_number != 0:
-            self.best_spawn(game_state)
+            try:
+                self.best_spawn(game_state)
+            except Exception:
+                self.attack(game_state)
 
         game_state.submit_turn()
 
@@ -173,8 +176,8 @@ class AlgoStrategy(gamelib.AlgoCore):
 
     def best_spawn(self, state):
         self.time_start = time.time()
-        locs = [[24, 10], [3, 10], [13, 0], [11, 12], [15, 12]]
-        units = [PING, EMP, SCRAMBLER]
+        locs = [[24, 10], [3, 10], [13, 0], [11, 2], [23,9]]
+        units = [EMP, PING, SCRAMBLER]
         bits = state.get_resource(state.BITS)
 
         # og_map = copy.deepcopy(state.game_map)
@@ -183,7 +186,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         for loc in locs:
             for unit in units:
                 cost = 3 if unit == EMP else 1
-                if not state.can_spawn(unit, loc):
+                if not state.can_spawn(unit, loc, int(bits/cost)):
                     continue
 
                 if time.time() - self.time_start < 2:
@@ -196,10 +199,10 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         # state.game_map = og_map
 
-        top = 8 if state.turn_number <= 8 else 12
+        top = 9 if state.turn_number <= 6 else 15
         if best[0] > 0:
             loc, unit, num = best[1]
-            if best[0] > num * 2 or state.get_resource(state.BITS) >= top:
+            if best[0] > num * cost or state.get_resource(state.BITS) >= top:
                 state.attempt_spawn(unit, loc, num)
         else:
             self.attack(state)
