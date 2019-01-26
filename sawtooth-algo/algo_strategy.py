@@ -5,12 +5,6 @@ import math
 import warnings
 from sys import maxsize
 
-
-from . import gamelib
-
-# Import our strategies
-# offense
-from strategies import emp_cheese, sell_vulnerable_line
 from defences import Defences
 
 
@@ -47,30 +41,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state = gamelib.AdvancedGameState(self.config, turn_state)
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
-        game_state.suppress_warnings(True)  #Uncomment this line to suppress warnings.
+        game_state.suppress_warnings(True)  # Uncomment this line to suppress warnings.
 
-        '''
-        # Perform setup if the turn number is zero
-        # Check if we should move up our setup, or not.
-        if game_state.turn_number == 0:
-            self.sawtooth_setup(game_state)
-            return
-
-        # Push anything important to the front of the priority queue
-        self.reactive_defence()
-
-        # Check if we want to rush them, if so, then do it!
-        rush_loc, rush_unit = self.find_rush_spot(game_state)
-        if rush_loc is not None:
-            self.attack_hole(game_state, rush_loc, rush_unit)
-            game_state.submit_turn()
-            return
-
-        # Sawtooth defence otherwise
-        self.sawtooth(game_state)
-        '''
-
-        self.defences.refresh_state(game_state)
         self.build_defences(game_state)
 
         if game_state.turn_number != 0:
@@ -78,40 +50,119 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         game_state.submit_turn()
 
-
     def attack(self, state: gamelib.AdvancedGameState):
         emp_loc = [3, 10]
         while state.can_spawn(EMP, emp_loc, 1):
             state.attempt_spawn(EMP, emp_loc, 1)
 
     def build_defences(self, state: gamelib.AdvancedGameState):
-        # When we're at full build, do nothing!
-        while state.get_resource(state.CORES) > 0 and not self.defences.build_done():
-            loc, defence_type = self.defences.get_next_defence()
-            if state.can_spawn(defence_type, loc):
-                state.attempt_spawn(defence_type, loc)
+        self.defences.build_template(state)
 
-    # Spawns as many pings/scramblers at the given location
-    def attack_hole(self, state: gamelib.AdvancedGameState, rush_loc, rush_unit):
+    @staticmethod
+    def attack_hole(state: gamelib.AdvancedGameState, rush_loc, rush_unit):
+        """ Spawns as many pings/scramblers at the given location
+
+        :param state:
+        :param rush_loc:
+        :param rush_unit:
+        :return:
+        """
         if state.can_spawn(rush_unit, rush_loc):
             # Find out the proper amount for the amount of bits to spend
             state.attempt_spawn(rush_unit, rush_loc, state.my_bits())
 
-    # Finds the side where they have the most defences. Checks the first 5 rows and determines
-    # if it's left-heavy or right-heavy. Returns left-heavy by default
-    def scan_opponent_defences(self, state: gamelib.AdvancedGameState):
+    @staticmethod
+    def scan_opponent_defences(state: gamelib.AdvancedGameState):
+        """ Finds the side where they have the most defences. Checks the first 5 rows and
+        determines if it's left-heavy or right-heavy. Returns left-heavy by default.
+
+        :param state:
+        :return:
+        """
         return True
 
-    # Sawtooth defence
     def sawtooth(self, state: gamelib.AdvancedGameState):
+        """ Sawtooth defence.
+
+        :param state:
+        :return:
+        """
         # Find the defences that were destroyed
-        destroyed = self.find_destroyed_defences(state)
+        damaged_locations = self._find_damaged_def_units(state)
 
+    @staticmethod
+    def _has_loc_been_attacked(curr_unit_obj, prev_unit_obj):
+        """ Helper to check if location has been attacked based on changes in
+        current and previous unit state.
 
+        :param curr_unit_obj: current round unit object.
+        :param prev_unit_obj: previous round unit object.
+        :return: (boolean) if the unit has been attacked.
+        """
+        if not curr_unit_obj:
+            return False
+        else:
+            return curr_unit_obj.stability < prev_unit_obj.stability
 
-    # Find the defences that were destroyed last term
-    def find_destroyed_defences(self, state: gamelib.AdvancedGameState):
-        return []
+    @staticmethod
+    def _find_locs_w_def_units(state):
+        """ Finds all locations of the defensive units on our side of the map.
+
+        :param state: game state object.
+        :return: (list) tuples of location and defensive units at that location.
+        """
+        locations = []
+        def_units = []
+
+        for x in range(state.ARENA_SIZE):
+            for y in range(state.HALF_ARENA):
+                units = state.game_map[[x, y]]
+                if units is None or units == []:
+                    continue
+                else:
+                    for unit in units:
+                        if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]:
+                            locations.append([x, y])
+                            def_units.append(unit)
+                            # gamelib.debug_write("Unit --> ", unit)
+
+        return zip(locations, def_units)
+
+    def _find_damaged_def_units(self, state: gamelib.AdvancedGameState, apply_barrel_mask=True):
+        """ Find all static units that lost some health during last round.
+
+        :param state: current game state.
+        :param apply_barrel_mask: flag to ignore units that are part of the barrel.
+        :return: (list) locations of damaged units.
+        """
+        damaged_locs = []
+
+        # If previous state of the game does not exist, then return empty array.
+        if self.prev_state is None:
+            return []
+
+        # Get locations of all defensive units in previous round.
+        prev_locs_and_units = self._find_locs_w_def_units(self.prev_state)
+
+        for prev_loc, prev_unit in prev_locs_and_units:
+            # Find defensive unit at current location.
+            curr_unit = [
+                unit for unit in state.game_map[prev_loc]
+                if unit.unit_type in [DESTRUCTOR, FILTER, ENCRYPTOR]
+            ]
+            curr_unit = None if len(curr_unit) == 0 else curr_unit[0]
+
+            # Check if unit has been attacked over the last round.
+            if self._has_loc_been_attacked(curr_unit, prev_unit):
+
+                # Apply barrel mask - do not count damaged units that are part of the barrel.
+                if apply_barrel_mask:
+                    if prev_loc not in BARREL_MASK:
+                        damaged_locs.append(prev_loc)
+                else:
+                    damaged_locs.append(prev_loc)
+
+        return damaged_locs
 
     # Set up the classic sawtooth defence
     def sawtooth_setup(self, state: gamelib.AdvancedGameState):
